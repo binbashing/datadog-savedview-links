@@ -133,7 +133,7 @@ def test_missing_view_parameter_integration(api_event_missing_view):
 def test_custom_datadog_site_integration():
     """Test integration with custom Datadog site."""
     os.environ["DATADOG_SITE"] = "datadoghq.eu"
-    
+
     api_event = {
         "pathParameters": {"dashboard_id": "abc123"},
         "queryStringParameters": {"view": "Prod"},
