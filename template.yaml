@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Datadog Saved View Links - Redirector Lambda
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 10
+    MemorySize: 128
+    Architectures:
+      - arm64
+
+Resources:
+  RedirectHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handler.lambda_handler
+      Environment:
+        Variables:
+          DATADOG_API_KEY: REPLACE_ME
+          DATADOG_APP_KEY: REPLACE_ME
+          DATADOG_SITE: datadoghq.com
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /dashboard/{dashboard_id}
+            Method: get
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/dashboard/"
