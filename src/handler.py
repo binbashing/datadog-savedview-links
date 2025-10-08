@@ -4,7 +4,10 @@ Entry point for AWS Lambda function.
 """
 import logging
 import os
-from src.datadog_client import DatadogClient, DatadogAPIError
+from src.datadog_client import (
+    DatadogClient, DatadogAPIError, DashboardNotFound, 
+    DatadogServerError, DatadogAuthError
+)
 from src.utils import find_saved_view, build_redirect_url
 
 # Configure logging
@@ -55,11 +58,18 @@ def lambda_handler(event, context):
         app_key = os.getenv('DATADOG_APP_KEY')
         site = os.getenv('DATADOG_SITE', 'datadoghq.com')
 
-        if not api_key or not app_key:
-            logger.error("Missing Datadog API credentials")
+        if not api_key:
+            logger.error("Missing DATADOG_API_KEY environment variable")
             return {
                 'statusCode': 500,
-                'body': 'Internal server error'
+                'body': 'DATADOG_API_KEY environment variable is required'
+            }
+
+        if not app_key:
+            logger.error("Missing DATADOG_APP_KEY environment variable")
+            return {
+                'statusCode': 500,
+                'body': 'DATADOG_APP_KEY environment variable is required'
             }
 
         client = DatadogClient(api_key, app_key, site)
@@ -89,6 +99,27 @@ def lambda_handler(event, context):
         return {
             'statusCode': 404,
             'body': f'Saved view \'{view_name}\' not found'
+        }
+
+    except DashboardNotFound as e:
+        logger.error(f"Dashboard not found: {e}")
+        return {
+            'statusCode': 404,
+            'body': 'Dashboard not found'
+        }
+
+    except DatadogAuthError as e:
+        logger.error(f"Datadog authentication error: {e}")
+        return {
+            'statusCode': 401,
+            'body': 'Authentication failed'
+        }
+
+    except DatadogServerError as e:
+        logger.error(f"Datadog server error: {e}")
+        return {
+            'statusCode': 502,
+            'body': 'Upstream service error'
         }
 
     except DatadogAPIError as e:

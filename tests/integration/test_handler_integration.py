@@ -10,9 +10,15 @@ from src.handler import lambda_handler
 pytestmark = pytest.mark.integration
 
 
+import os
+import pytest
+
+from src.handler import lambda_handler
+
+
 @pytest.fixture
 def api_event():
-    """API Gateway event fixture for integration tests."""
+    """Sample API Gateway event for testing."""
     return {
         "pathParameters": {"dashboard_id": "abc123"},
         "queryStringParameters": {"view": "Prod"},
@@ -21,11 +27,37 @@ def api_event():
 
 @pytest.fixture
 def api_event_missing_view():
-    """API Gateway event without view parameter."""
+    """API Gateway event missing the view parameter."""
     return {
         "pathParameters": {"dashboard_id": "abc123"},
         "queryStringParameters": None,
     }
+
+
+@pytest.fixture
+def clear_env_vars():
+    """Fixture to temporarily clear environment variables."""
+    original_api_key = os.environ.get("DATADOG_API_KEY")
+    original_app_key = os.environ.get("DATADOG_APP_KEY")
+    original_site = os.environ.get("DATADOG_SITE")
+    
+    yield
+    
+    # Restore original values
+    if original_api_key:
+        os.environ["DATADOG_API_KEY"] = original_api_key
+    else:
+        os.environ.pop("DATADOG_API_KEY", None)
+        
+    if original_app_key:
+        os.environ["DATADOG_APP_KEY"] = original_app_key
+    else:
+        os.environ.pop("DATADOG_APP_KEY", None)
+        
+    if original_site:
+        os.environ["DATADOG_SITE"] = original_site
+    else:
+        os.environ.pop("DATADOG_SITE", None)
 
 
 @pytest.fixture(autouse=True)
@@ -102,13 +134,13 @@ def test_dashboard_not_found_integration(api_event):
     )
 
     result = lambda_handler(api_event, None)
-    assert result["statusCode"] == 500
-    assert "Internal server error" in result["body"]
+    assert result["statusCode"] == 404
+    assert "Dashboard not found" in result["body"]
 
 
 @responses.activate
 def test_datadog_api_error_integration(api_event):
-    """Test 500 when Datadog API returns server error."""
+    """Test 502 when Datadog API returns server error."""
     responses.get(
         "https://api.datadoghq.com/api/v1/dashboards/abc123",
         json={"error": "Internal server error"},
@@ -116,8 +148,22 @@ def test_datadog_api_error_integration(api_event):
     )
 
     result = lambda_handler(api_event, None)
-    assert result["statusCode"] == 500
-    assert "Internal server error" in result["body"]
+    assert result["statusCode"] == 502
+    assert "Upstream service error" in result["body"]
+
+
+@responses.activate
+def test_datadog_auth_error_integration(api_event):
+    """Test 401 when Datadog API returns authentication error."""
+    responses.get(
+        "https://api.datadoghq.com/api/v1/dashboards/abc123",
+        json={"errors": ["Authentication failed"]},
+        status=403,
+    )
+
+    result = lambda_handler(api_event, None)
+    assert result["statusCode"] == 401
+    assert "Authentication failed" in result["body"]
 
 
 @responses.activate
@@ -202,3 +248,38 @@ def test_complex_template_variables_integration():
     assert "tpl_var_service=api+server" in location  # URL encoded with +
     assert "tpl_var_version=v1.2.3" in location
     assert "tpl_var_datacenter=us-west-2" in location
+
+
+def test_missing_api_key_integration(api_event, clear_env_vars):
+    """Test integration when DATADOG_API_KEY is missing."""
+    # Remove API key from environment
+    os.environ.pop("DATADOG_API_KEY", None)
+    
+    result = lambda_handler(api_event, None)
+    
+    assert result["statusCode"] == 500
+    assert "DATADOG_API_KEY environment variable is required" in result["body"]
+
+
+def test_missing_app_key_integration(api_event, clear_env_vars):
+    """Test integration when DATADOG_APP_KEY is missing."""
+    # Remove APP key from environment
+    os.environ.pop("DATADOG_APP_KEY", None)
+    
+    result = lambda_handler(api_event, None)
+    
+    assert result["statusCode"] == 500
+    assert "DATADOG_APP_KEY environment variable is required" in result["body"]
+
+
+def test_missing_both_keys_integration(api_event, clear_env_vars):
+    """Test integration when both API keys are missing."""
+    # Remove both keys from environment
+    os.environ.pop("DATADOG_API_KEY", None)
+    os.environ.pop("DATADOG_APP_KEY", None)
+    
+    result = lambda_handler(api_event, None)
+    
+    assert result["statusCode"] == 500
+    # Should return the first missing key error
+    assert "DATADOG_API_KEY environment variable is required" in result["body"]

@@ -3,7 +3,9 @@ Unit tests for Datadog API client.
 """
 import pytest
 import responses
-from src.datadog_client import DatadogClient
+from src.datadog_client import (
+    DatadogClient, DashboardNotFound, DatadogServerError, DatadogAuthError
+)
 
 pytestmark = pytest.mark.unit
 
@@ -93,5 +95,39 @@ class TestDatadogClient:
 
         client = DatadogClient("fake-api-key", "fake-app-key")
 
-        with pytest.raises(Exception):  # Will be more specific in implementation
+        with pytest.raises(DatadogServerError):
+            client.get_dashboard(dashboard_id)
+
+    @responses.activate
+    def test_get_dashboard_not_found(self):
+        """Test handling of dashboard not found errors."""
+        dashboard_id = "not-found"
+
+        responses.add(
+            responses.GET,
+            f"https://api.datadoghq.com/api/v1/dashboards/{dashboard_id}",
+            json={"errors": ["Dashboard not found"]},
+            status=404
+        )
+
+        client = DatadogClient("fake-api-key", "fake-app-key")
+
+        with pytest.raises(DashboardNotFound):
+            client.get_dashboard(dashboard_id)
+
+    @responses.activate
+    def test_get_dashboard_auth_error(self):
+        """Test handling of authentication errors."""
+        dashboard_id = "auth-fail"
+
+        responses.add(
+            responses.GET,
+            f"https://api.datadoghq.com/api/v1/dashboards/{dashboard_id}",
+            json={"errors": ["Authentication failed"]},
+            status=403
+        )
+
+        client = DatadogClient("fake-api-key", "fake-app-key")
+
+        with pytest.raises(DatadogAuthError):
             client.get_dashboard(dashboard_id)

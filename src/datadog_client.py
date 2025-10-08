@@ -12,6 +12,21 @@ class DatadogAPIError(Exception):
     pass
 
 
+class DashboardNotFound(DatadogAPIError):
+    """Exception raised when a dashboard is not found."""
+    pass
+
+
+class DatadogServerError(DatadogAPIError):
+    """Exception raised when Datadog API returns a server error."""
+    pass
+
+
+class DatadogAuthError(DatadogAPIError):
+    """Exception raised when Datadog API authentication fails."""
+    pass
+
+
 class DatadogClient:
     """Client for interacting with Datadog API v1."""
 
@@ -60,12 +75,21 @@ class DatadogClient:
                 return response.json()
             elif response.status_code == 404:
                 logger.error(f"Dashboard not found: {dashboard_id}")
-                raise DatadogAPIError(f"Dashboard {dashboard_id} not found")
+                raise DashboardNotFound(f"Dashboard {dashboard_id} not found")
+            elif response.status_code == 401:
+                logger.error("Authentication failed - invalid API or app key")
+                raise DatadogAuthError("Invalid Datadog API credentials")
+            elif response.status_code == 403:
+                logger.error("Authorization failed - insufficient permissions")
+                raise DatadogAuthError("Insufficient permissions for Datadog API")
+            elif response.status_code >= 500:
+                logger.error(f"Datadog server error {response.status_code}: {response.text}")
+                raise DatadogServerError(
+                    f"Datadog server error {response.status_code}")
             else:
                 logger.error(f"API error {response.status_code}: {response.text}")
                 raise DatadogAPIError(
-                    f"API request failed with status {
-                        response.status_code}")
+                    f"API request failed with status {response.status_code}")
 
         except requests.RequestException as e:
             logger.error(f"Request failed for dashboard {dashboard_id}: {e}")
