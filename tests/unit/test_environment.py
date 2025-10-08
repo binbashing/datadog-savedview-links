@@ -74,18 +74,18 @@ class TestEnvironmentVariables:
             os.environ["DATADOG_API_KEY"] = "test_api_key"
             os.environ["DATADOG_APP_KEY"] = "test_app_key"
             # Don't set DATADOG_SITE to test default
-            
+
             with patch('src.handler.DatadogClient') as mock_client:
                 # Mock the client to avoid actual API calls
                 mock_instance = Mock()
                 mock_client.return_value = mock_instance
                 mock_instance.get_dashboard.side_effect = Exception("API call made")
-                
-                result = lambda_handler(event, None)
-                
+
+                lambda_handler(event, None)
+
                 # Verify DatadogClient was called with default site
                 mock_client.assert_called_once_with(
-                    "test_api_key", 
-                    "test_app_key", 
+                    "test_api_key",
+                    "test_app_key",
                     "datadoghq.com"
                 )

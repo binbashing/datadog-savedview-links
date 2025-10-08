@@ -2,18 +2,13 @@
 Integration tests for Lambda handler.
 Tests the complete end-to-end flow with HTTP-level mocking.
 """
-import responses
-import pytest
 import os
+import pytest
+import responses
+
 from src.handler import lambda_handler
 
 pytestmark = pytest.mark.integration
-
-
-import os
-import pytest
-
-from src.handler import lambda_handler
 
 
 @pytest.fixture
@@ -40,20 +35,20 @@ def clear_env_vars():
     original_api_key = os.environ.get("DATADOG_API_KEY")
     original_app_key = os.environ.get("DATADOG_APP_KEY")
     original_site = os.environ.get("DATADOG_SITE")
-    
+
     yield
-    
+
     # Restore original values
     if original_api_key:
         os.environ["DATADOG_API_KEY"] = original_api_key
     else:
         os.environ.pop("DATADOG_API_KEY", None)
-        
+
     if original_app_key:
         os.environ["DATADOG_APP_KEY"] = original_app_key
     else:
         os.environ.pop("DATADOG_APP_KEY", None)
-        
+
     if original_site:
         os.environ["DATADOG_SITE"] = original_site
     else:
@@ -254,9 +249,9 @@ def test_missing_api_key_integration(api_event, clear_env_vars):
     """Test integration when DATADOG_API_KEY is missing."""
     # Remove API key from environment
     os.environ.pop("DATADOG_API_KEY", None)
-    
+
     result = lambda_handler(api_event, None)
-    
+
     assert result["statusCode"] == 500
     assert "DATADOG_API_KEY environment variable is required" in result["body"]
 
@@ -265,9 +260,9 @@ def test_missing_app_key_integration(api_event, clear_env_vars):
     """Test integration when DATADOG_APP_KEY is missing."""
     # Remove APP key from environment
     os.environ.pop("DATADOG_APP_KEY", None)
-    
+
     result = lambda_handler(api_event, None)
-    
+
     assert result["statusCode"] == 500
     assert "DATADOG_APP_KEY environment variable is required" in result["body"]
 
@@ -277,9 +272,9 @@ def test_missing_both_keys_integration(api_event, clear_env_vars):
     # Remove both keys from environment
     os.environ.pop("DATADOG_API_KEY", None)
     os.environ.pop("DATADOG_APP_KEY", None)
-    
+
     result = lambda_handler(api_event, None)
-    
+
     assert result["statusCode"] == 500
     # Should return the first missing key error
     assert "DATADOG_API_KEY environment variable is required" in result["body"]

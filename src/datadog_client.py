@@ -83,7 +83,8 @@ class DatadogClient:
                 logger.error("Authorization failed - insufficient permissions")
                 raise DatadogAuthError("Insufficient permissions for Datadog API")
             elif response.status_code >= 500:
-                logger.error(f"Datadog server error {response.status_code}: {response.text}")
+                logger.error(f"Datadog server error {response.status_code}: "
+                             f"{response.text}")
                 raise DatadogServerError(
                     f"Datadog server error {response.status_code}")
             else:
