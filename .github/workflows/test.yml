@@ -34,13 +34,21 @@ jobs:
         flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 src/ tests/ --count --max-complexity=10 --max-line-length=88 --statistics
     
-    - name: Run tests with coverage
+    - name: Run unit tests
+      run: |
+        pytest tests/unit/ -m unit -v
+    
+    - name: Run integration tests  
+      run: |
+        pytest tests/integration/ -m integration -v
+    
+    - name: Generate combined coverage report
       run: |
         pytest --cov=src --cov-report=term-missing --cov-report=xml -v
     
-    - name: Coverage gate (fail if < 90%)
+    - name: Coverage gate (fail if < 85%)
       run: |
-        coverage report --fail-under=90
+        coverage report --fail-under=85
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

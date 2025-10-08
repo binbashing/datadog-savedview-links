@@ -5,6 +5,8 @@ import pytest
 import responses
 from src.datadog_client import DatadogClient
 
+pytestmark = pytest.mark.unit
+
 
 class TestDatadogClient:
     """Test Datadog API client functionality."""

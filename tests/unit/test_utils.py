@@ -4,6 +4,8 @@ Unit tests for utility functions.
 import pytest
 from src.utils import build_redirect_url, find_saved_view
 
+pytestmark = pytest.mark.unit
+
 
 class TestBuildRedirectUrl:
     """Test URL building functionality."""
