@@ -1,4 +1,4 @@
-name: Test
+name: CI Tests
 
 on:
   push:
@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
     
     - name: Set up Python 3.12
       uses: actions/setup-python@v4
@@ -24,13 +25,22 @@ jobs:
         pip install -r requirements.txt
         pip install -r test-requirements.txt
     
-    - name: Run tests with pytest
+    - name: Basic syntax check
       run: |
-        pytest -v --tb=short
+        python -m py_compile $(git ls-files '*.py')
     
-    - name: Generate coverage report
+    - name: PEP8 linting with flake8
       run: |
-        pytest --cov=src --cov-report=xml
+        flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src/ tests/ --count --max-complexity=10 --max-line-length=88 --statistics
+    
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=src --cov-report=term-missing --cov-report=xml -v
+    
+    - name: Coverage gate (fail if < 90%)
+      run: |
+        coverage report --fail-under=90
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
