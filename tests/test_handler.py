@@ -19,23 +19,28 @@ class TestLambdaHandler:
         }
         context = Mock()
         
-        # This will fail until implementation
-        with patch('src.handler.DatadogClient') as mock_client:
-            mock_instance = mock_client.return_value
-            mock_instance.get_dashboard.return_value = {
-                "template_variable_presets": [
-                    {
-                        "name": "Production",
-                        "template_variables": [{"name": "env", "value": "prod"}]
-                    }
-                ]
-            }
-            
-            response = lambda_handler(event, context)
-            
-            assert response["statusCode"] == 302
-            assert "Location" in response["headers"]
-            assert "abc-123" in response["headers"]["Location"]
+        # Mock environment variables and DatadogClient
+        with patch.dict('os.environ', {
+            'DATADOG_API_KEY': 'test-api-key',
+            'DATADOG_APP_KEY': 'test-app-key',
+            'DATADOG_SITE': 'datadoghq.com'
+        }):
+            with patch('src.handler.DatadogClient') as mock_client:
+                mock_instance = mock_client.return_value
+                mock_instance.get_dashboard.return_value = {
+                    "template_variable_presets": [
+                        {
+                            "name": "Production",
+                            "template_variables": [{"name": "env", "value": "prod"}]
+                        }
+                    ]
+                }
+                
+                response = lambda_handler(event, context)
+                
+                assert response["statusCode"] == 302
+                assert "Location" in response["headers"]
+                assert "abc-123" in response["headers"]["Location"]
     
     def test_lambda_handler_saved_view_not_found(self):
         """Test 404 when saved view doesn't exist."""
@@ -45,18 +50,22 @@ class TestLambdaHandler:
         }
         context = Mock()
         
-        with patch('src.handler.DatadogClient') as mock_client:
-            mock_instance = mock_client.return_value
-            mock_instance.get_dashboard.return_value = {
-                "template_variable_presets": [
-                    {"name": "Production", "template_variables": []}
-                ]
-            }
-            
-            response = lambda_handler(event, context)
-            
-            assert response["statusCode"] == 404
-            assert "Saved view 'NonExistent' not found" in response["body"]
+        with patch.dict('os.environ', {
+            'DATADOG_API_KEY': 'test-api-key',
+            'DATADOG_APP_KEY': 'test-app-key'
+        }):
+            with patch('src.handler.DatadogClient') as mock_client:
+                mock_instance = mock_client.return_value
+                mock_instance.get_dashboard.return_value = {
+                    "template_variable_presets": [
+                        {"name": "Production", "template_variables": []}
+                    ]
+                }
+                
+                response = lambda_handler(event, context)
+                
+                assert response["statusCode"] == 404
+                assert "Saved view 'NonExistent' not found" in response["body"]
     
     def test_lambda_handler_missing_view_parameter(self):
         """Test handling missing view parameter."""
@@ -79,11 +88,15 @@ class TestLambdaHandler:
         }
         context = Mock()
         
-        with patch('src.handler.DatadogClient') as mock_client:
-            mock_instance = mock_client.return_value
-            mock_instance.get_dashboard.side_effect = Exception("API Error")
-            
-            response = lambda_handler(event, context)
-            
-            assert response["statusCode"] == 500
-            assert "Internal server error" in response["body"]
+        with patch.dict('os.environ', {
+            'DATADOG_API_KEY': 'test-api-key',
+            'DATADOG_APP_KEY': 'test-app-key'
+        }):
+            with patch('src.handler.DatadogClient') as mock_client:
+                mock_instance = mock_client.return_value
+                mock_instance.get_dashboard.side_effect = Exception("API Error")
+                
+                response = lambda_handler(event, context)
+                
+                assert response["statusCode"] == 500
+                assert "Internal server error" in response["body"]

@@ -1,21 +1,22 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-.env
-.venv
-env/
-venv/
+*.py[cod]
+*$py.class
+
+# AWS SAM build artifacts
 .aws-sam/
-.sam/
-build/
-coverage/
-*.log
-.coverage
-.pytest_cache/
-*.egg-info/
-dist/
-samconfig.toml
+
+# Virtual environment
+.venv/
+venv/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Project specific
 prompts/
