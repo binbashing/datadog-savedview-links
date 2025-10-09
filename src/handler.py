@@ -120,49 +120,49 @@ def _handle_exception(e, view_name=None):
 def lambda_handler(event, context):
     """
     Lambda handler for dashboard redirects.
-    
+
     Args:
         event: API Gateway event
         context: Lambda context
-        
+
     Returns:
         HTTP response dict
     """
     logger.info("Lambda handler started")
-    
+
     try:
         # Validate environment variables
         _validate_environment()
-        
+
         # Validate and extract parameters
         result = _validate_parameters(event)
         if len(result) == 3 and result[2] is not None:
             # Error case - return the error response
             return result[2]
-        
+
         dashboard_id, view_name = result[0], result[1]
-        
+
         # Initialize Datadog client
         site = os.getenv("DATADOG_SITE", "datadoghq.com")
-        
+
         client = DatadogClient(
             api_key=os.getenv("DATADOG_API_KEY"),
             app_key=os.getenv("DATADOG_APP_KEY"),
             site=site
         )
-        
+
         # Fetch dashboard configuration
         dashboard = client.get_dashboard(dashboard_id)
-        
+
         # Find the saved view
         saved_view = find_saved_view(dashboard, view_name)
-        
+
         # Extract template variables from saved view
         template_variables = saved_view.get('template_variables', [])
-        
+
         # Build redirect URL
         redirect_url = build_redirect_url(dashboard_id, template_variables, site)
-        
+
         return {
             "statusCode": 302,
             "headers": {
@@ -170,6 +170,6 @@ def lambda_handler(event, context):
             },
             "body": ""
         }
-        
+
     except Exception as e:
         return _handle_exception(e, locals().get('view_name'))

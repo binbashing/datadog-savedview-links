@@ -14,6 +14,14 @@ samconfig.yaml
 .venv/
 venv/
 
+# Test coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.pytest_cache/
+
 # IDE files
 .vscode/
 .idea/
