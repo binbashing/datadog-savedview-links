@@ -1,0 +1,11 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "datadog-savedview-links"
+resolve_s3 = true
+s3_prefix = "datadog-savedview-links"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "DatadogApiKey=\"YOUR_DATADOG_API_KEY\" DatadogAppKey=\"YOUR_DATADOG_APP_KEY\" DatadogSite=\"YOUR_DATADOG_SITE\""
+image_repositories = []

@@ -59,12 +59,15 @@ class DatadogClient:
             DatadogAPIError: If API request fails
         """
         logger.info(f"Fetching dashboard: {dashboard_id}")
+        logger.info(f"Using Datadog site: {self.site}")
+        logger.info(f"Base URL: {self.base_url}")
 
-        url = f"{self.base_url}/api/v1/dashboards/{dashboard_id}"
+        url = f"{self.base_url}/api/v1/dashboard/{dashboard_id}"
+        logger.info(f"Full API URL: {url}")
         headers = {
             "DD-API-KEY": self.api_key,
             "DD-APPLICATION-KEY": self.app_key,
-            "Content-Type": "application/json"
+            "Accept": "application/json"
         }
 
         try:

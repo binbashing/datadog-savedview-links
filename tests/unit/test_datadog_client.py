@@ -33,7 +33,7 @@ class TestDatadogClient:
 
         responses.add(
             responses.GET,
-            f"https://api.datadoghq.com/api/v1/dashboards/{dashboard_id}",
+            f"https://api.datadoghq.com/api/v1/dashboard/{dashboard_id}",
             json=mock_response,
             status=200
         )
@@ -54,7 +54,7 @@ class TestDatadogClient:
 
         responses.add(
             responses.GET,
-            f"https://api.{site}/api/v1/dashboards/{dashboard_id}",
+            f"https://api.{site}/api/v1/dashboard/{dashboard_id}",
             json=mock_response,
             status=200
         )
@@ -88,7 +88,7 @@ class TestDatadogClient:
 
         responses.add(
             responses.GET,
-            f"https://api.datadoghq.com/api/v1/dashboards/{dashboard_id}",
+            f"https://api.datadoghq.com/api/v1/dashboard/{dashboard_id}",
             json={"error": "Internal server error"},
             status=500
         )
@@ -105,7 +105,7 @@ class TestDatadogClient:
 
         responses.add(
             responses.GET,
-            f"https://api.datadoghq.com/api/v1/dashboards/{dashboard_id}",
+            f"https://api.datadoghq.com/api/v1/dashboard/{dashboard_id}",
             json={"errors": ["Dashboard not found"]},
             status=404
         )
@@ -122,7 +122,7 @@ class TestDatadogClient:
 
         responses.add(
             responses.GET,
-            f"https://api.datadoghq.com/api/v1/dashboards/{dashboard_id}",
+            f"https://api.datadoghq.com/api/v1/dashboard/{dashboard_id}",
             json={"errors": ["Authentication failed"]},
             status=403
         )

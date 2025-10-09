@@ -17,7 +17,7 @@ class TestBuildRedirectUrl:
             {"name": "env", "value": "prod"}
         ]
 
-        expected_url = "https://app.datadoghq.com/dashboard/abc-123?tpl_var_env=prod"
+        expected_url = "https://datadoghq.com/dashboard/abc-123?tpl_var_env=prod"
         actual_url = build_redirect_url(dashboard_id, template_variables)
 
         assert actual_url == expected_url
@@ -31,7 +31,7 @@ class TestBuildRedirectUrl:
         ]
 
         expected_url = (
-            "https://app.datadoghq.com/dashboard/xyz-456?"
+            "https://datadoghq.com/dashboard/xyz-456?"
             "tpl_var_env=prod&tpl_var_region=us-east-1"
         )
         actual_url = build_redirect_url(dashboard_id, template_variables)
@@ -44,7 +44,7 @@ class TestBuildRedirectUrl:
         template_variables = [{"name": "env", "value": "staging"}]
         site = "datadoghq.eu"
 
-        expected_url = "https://app.datadoghq.eu/dashboard/abc-123?tpl_var_env=staging"
+        expected_url = "https://datadoghq.eu/dashboard/abc-123?tpl_var_env=staging"
         actual_url = build_redirect_url(dashboard_id, template_variables, site)
 
         assert actual_url == expected_url

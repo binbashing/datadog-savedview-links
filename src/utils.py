@@ -25,7 +25,7 @@ def build_redirect_url(
     logger.info(f"Building redirect URL for dashboard {dashboard_id}")
 
     # Build base URL
-    base_url = f"https://app.{site}/dashboard/{dashboard_id}"
+    base_url = f"https://{site}/dashboard/{dashboard_id}"
 
     # Build query parameters from template variables
     query_params = {}

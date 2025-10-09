@@ -6,6 +6,10 @@ __pycache__/
 # AWS SAM build artifacts
 .aws-sam/
 
+# SAM configuration (contains environment-specific settings)
+samconfig.toml
+samconfig.yaml
+
 # Virtual environment
 .venv/
 venv/

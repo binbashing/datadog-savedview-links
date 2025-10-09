@@ -26,8 +26,8 @@ class TestEnvironmentVariables:
 
             result = lambda_handler(event, None)
 
-            assert result["statusCode"] == 500
-            assert "DATADOG_API_KEY environment variable is required" in result["body"]
+            assert result["statusCode"] == 401
+            assert "Authentication failed" in result["body"]
 
     def test_missing_datadog_app_key(self):
         """Test handler when DATADOG_APP_KEY is missing."""
@@ -43,8 +43,8 @@ class TestEnvironmentVariables:
 
             result = lambda_handler(event, None)
 
-            assert result["statusCode"] == 500
-            assert "DATADOG_APP_KEY environment variable is required" in result["body"]
+            assert result["statusCode"] == 401
+            assert "Authentication failed" in result["body"]
 
     def test_missing_both_keys(self):
         """Test handler when both API keys are missing."""
@@ -59,9 +59,8 @@ class TestEnvironmentVariables:
 
             result = lambda_handler(event, None)
 
-            assert result["statusCode"] == 500
-            # Should return the first missing key error (API_KEY checked first)
-            assert "DATADOG_API_KEY environment variable is required" in result["body"]
+            assert result["statusCode"] == 401
+            assert "Authentication failed" in result["body"]
 
     def test_datadog_site_defaults_correctly(self):
         """Test that DATADOG_SITE defaults to datadoghq.com when not set."""
@@ -85,7 +84,7 @@ class TestEnvironmentVariables:
 
                 # Verify DatadogClient was called with default site
                 mock_client.assert_called_once_with(
-                    "test_api_key",
-                    "test_app_key",
-                    "datadoghq.com"
+                    api_key="test_api_key",
+                    app_key="test_app_key",
+                    site="datadoghq.com"
                 )

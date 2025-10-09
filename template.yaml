@@ -2,6 +2,19 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Datadog Saved View Links - Redirector Lambda
 
+Parameters:
+  DatadogApiKey:
+    Type: String
+    Description: Datadog API Key
+    NoEcho: true
+  DatadogAppKey:
+    Type: String
+    Description: Datadog Application Key
+    NoEcho: true
+  DatadogSite:
+    Type: String
+    Description: Datadog Site (e.g., datadoghq.com, datadoghq.eu)
+
 Globals:
   Function:
     Runtime: python3.12
@@ -18,9 +31,9 @@ Resources:
       Handler: handler.lambda_handler
       Environment:
         Variables:
-          DATADOG_API_KEY: REPLACE_ME
-          DATADOG_APP_KEY: REPLACE_ME
-          DATADOG_SITE: datadoghq.com
+          DATADOG_API_KEY: !Ref DatadogApiKey
+          DATADOG_APP_KEY: !Ref DatadogAppKey
+          DATADOG_SITE: !Ref DatadogSite
       Events:
         Api:
           Type: Api

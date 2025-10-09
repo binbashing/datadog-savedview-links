@@ -80,7 +80,7 @@ def test_successful_redirect_integration(api_event):
     }
 
     responses.get(
-        "https://api.datadoghq.com/api/v1/dashboards/abc123",
+        "https://api.datadoghq.com/api/v1/dashboard/abc123",
         json=dashboard_json,
         status=200,
     )
@@ -90,7 +90,7 @@ def test_successful_redirect_integration(api_event):
     assert result["statusCode"] == 302
     assert "Location" in result["headers"]
     location = result["headers"]["Location"]
-    assert "https://app.datadoghq.com/dashboard/abc123" in location
+    assert "https://datadoghq.com/dashboard/abc123" in location
     assert "tpl_var_env=prod" in location
     assert "tpl_var_region=us-east-1" in location
 
@@ -109,7 +109,7 @@ def test_saved_view_not_found_integration(api_event):
     }
 
     responses.get(
-        "https://api.datadoghq.com/api/v1/dashboards/abc123",
+        "https://api.datadoghq.com/api/v1/dashboard/abc123",
         json=dashboard_json,
         status=200,
     )
@@ -123,7 +123,7 @@ def test_saved_view_not_found_integration(api_event):
 def test_dashboard_not_found_integration(api_event):
     """Test 404 when dashboard doesn't exist."""
     responses.get(
-        "https://api.datadoghq.com/api/v1/dashboards/abc123",
+        "https://api.datadoghq.com/api/v1/dashboard/abc123",
         json={"errors": ["Dashboard not found"]},
         status=404,
     )
@@ -137,7 +137,7 @@ def test_dashboard_not_found_integration(api_event):
 def test_datadog_api_error_integration(api_event):
     """Test 502 when Datadog API returns server error."""
     responses.get(
-        "https://api.datadoghq.com/api/v1/dashboards/abc123",
+        "https://api.datadoghq.com/api/v1/dashboard/abc123",
         json={"error": "Internal server error"},
         status=500,
     )
@@ -151,7 +151,7 @@ def test_datadog_api_error_integration(api_event):
 def test_datadog_auth_error_integration(api_event):
     """Test 401 when Datadog API returns authentication error."""
     responses.get(
-        "https://api.datadoghq.com/api/v1/dashboards/abc123",
+        "https://api.datadoghq.com/api/v1/dashboard/abc123",
         json={"errors": ["Authentication failed"]},
         status=403,
     )
@@ -191,7 +191,7 @@ def test_custom_datadog_site_integration():
     }
 
     responses.get(
-        "https://api.datadoghq.eu/api/v1/dashboards/abc123",
+        "https://api.datadoghq.eu/api/v1/dashboard/abc123",
         json=dashboard_json,
         status=200,
     )
@@ -200,7 +200,7 @@ def test_custom_datadog_site_integration():
 
     assert result["statusCode"] == 302
     location = result["headers"]["Location"]
-    assert "https://app.datadoghq.eu/dashboard/abc123" in location
+    assert "https://datadoghq.eu/dashboard/abc123" in location
     assert "tpl_var_env=prod" in location
 
     # Reset environment
@@ -230,7 +230,7 @@ def test_complex_template_variables_integration():
     }
 
     responses.get(
-        "https://api.datadoghq.com/api/v1/dashboards/xyz456",
+        "https://api.datadoghq.com/api/v1/dashboard/xyz456",
         json=dashboard_json,
         status=200,
     )
@@ -239,7 +239,7 @@ def test_complex_template_variables_integration():
 
     assert result["statusCode"] == 302
     location = result["headers"]["Location"]
-    assert "https://app.datadoghq.com/dashboard/xyz456" in location
+    assert "https://datadoghq.com/dashboard/xyz456" in location
     assert "tpl_var_service=api+server" in location  # URL encoded with +
     assert "tpl_var_version=v1.2.3" in location
     assert "tpl_var_datacenter=us-west-2" in location
@@ -252,8 +252,8 @@ def test_missing_api_key_integration(api_event, clear_env_vars):
 
     result = lambda_handler(api_event, None)
 
-    assert result["statusCode"] == 500
-    assert "DATADOG_API_KEY environment variable is required" in result["body"]
+    assert result["statusCode"] == 401
+    assert "Authentication failed" in result["body"]
 
 
 def test_missing_app_key_integration(api_event, clear_env_vars):
@@ -263,8 +263,8 @@ def test_missing_app_key_integration(api_event, clear_env_vars):
 
     result = lambda_handler(api_event, None)
 
-    assert result["statusCode"] == 500
-    assert "DATADOG_APP_KEY environment variable is required" in result["body"]
+    assert result["statusCode"] == 401
+    assert "Authentication failed" in result["body"]
 
 
 def test_missing_both_keys_integration(api_event, clear_env_vars):
@@ -275,6 +275,6 @@ def test_missing_both_keys_integration(api_event, clear_env_vars):
 
     result = lambda_handler(api_event, None)
 
-    assert result["statusCode"] == 500
+    assert result["statusCode"] == 401
     # Should return the first missing key error
-    assert "DATADOG_API_KEY environment variable is required" in result["body"]
+    assert "Authentication failed" in result["body"]

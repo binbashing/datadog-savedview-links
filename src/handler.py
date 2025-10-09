@@ -4,11 +4,22 @@ Entry point for AWS Lambda function.
 """
 import logging
 import os
-from src.datadog_client import (
-    DatadogClient, DatadogAPIError, DashboardNotFound,
-    DatadogServerError, DatadogAuthError
-)
-from src.utils import find_saved_view, build_redirect_url
+
+# Handle imports for both Lambda environment and local testing
+try:
+    # Lambda environment - files are at root level
+    from datadog_client import (
+        DatadogClient, DatadogAPIError, DashboardNotFound,
+        DatadogServerError, DatadogAuthError
+    )
+    from utils import find_saved_view, build_redirect_url
+except ImportError:
+    # Local environment - files are in src package
+    from src.datadog_client import (
+        DatadogClient, DatadogAPIError, DashboardNotFound,
+        DatadogServerError, DatadogAuthError
+    )
+    from src.utils import find_saved_view, build_redirect_url
 
 # Configure logging
 logging.basicConfig(
@@ -108,41 +119,57 @@ def _handle_exception(e, view_name=None):
 
 def lambda_handler(event, context):
     """
-    AWS Lambda handler for dashboard redirect requests.
-
+    Lambda handler for dashboard redirects.
+    
     Args:
         event: API Gateway event
         context: Lambda context
-
+        
     Returns:
-        HTTP response with redirect or error
+        HTTP response dict
     """
-    logger.info("Processing dashboard redirect request")
-
+    logger.info("Lambda handler started")
+    
     try:
-        # Validate parameters
-        dashboard_id, view_name, param_error = _validate_parameters(event)
-        if param_error:
-            return param_error
-
-        # Validate environment
-        api_key, app_key, site, env_error = _validate_environment()
-        if env_error:
-            return env_error
-
-        # Process request
-        client = DatadogClient(api_key, app_key, site)
-        dashboard_data = client.get_dashboard(dashboard_id)
-        saved_view = find_saved_view(dashboard_data, view_name)
-        template_variables = saved_view.get("template_variables", [])
+        # Validate environment variables
+        _validate_environment()
+        
+        # Validate and extract parameters
+        result = _validate_parameters(event)
+        if len(result) == 3 and result[2] is not None:
+            # Error case - return the error response
+            return result[2]
+        
+        dashboard_id, view_name = result[0], result[1]
+        
+        # Initialize Datadog client
+        site = os.getenv("DATADOG_SITE", "datadoghq.com")
+        
+        client = DatadogClient(
+            api_key=os.getenv("DATADOG_API_KEY"),
+            app_key=os.getenv("DATADOG_APP_KEY"),
+            site=site
+        )
+        
+        # Fetch dashboard configuration
+        dashboard = client.get_dashboard(dashboard_id)
+        
+        # Find the saved view
+        saved_view = find_saved_view(dashboard, view_name)
+        
+        # Extract template variables from saved view
+        template_variables = saved_view.get('template_variables', [])
+        
+        # Build redirect URL
         redirect_url = build_redirect_url(dashboard_id, template_variables, site)
-
-        logger.info(f"Redirecting to: {redirect_url}")
+        
         return {
-            'statusCode': 302,
-            'headers': {'Location': redirect_url},
-            'body': ''
+            "statusCode": 302,
+            "headers": {
+                "Location": redirect_url
+            },
+            "body": ""
         }
-
+        
     except Exception as e:
         return _handle_exception(e, locals().get('view_name'))

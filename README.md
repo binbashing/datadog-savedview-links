@@ -51,16 +51,22 @@ pytest --cov=src --cov-report=html
 
 ### Deployment
 
-Deploy to AWS:
-```bash
-sam deploy --guided
-```
+1. **Configure deployment settings**:
+   ```bash
+   cp samconfig.toml.example samconfig.toml
+   # Edit samconfig.toml with your settings:
+   # - DatadogApiKey: Your Datadog API key
+   # - DatadogAppKey: Your Datadog Application key  
+   # - DatadogSite: Your Datadog site (e.g., us5.datadoghq.com)
+   ```
 
-On first deployment, you'll be prompted to configure:
-- Stack name
-- AWS Region
-- Confirm changes before deploy
-- Allow SAM to create IAM roles
+2. **Deploy to AWS**:
+   ```bash
+   sam build
+   sam deploy
+   ```
+
+   > **Note**: `samconfig.toml` contains sensitive information and is not committed to version control.
 
 The deployed API URL will be shown in the CloudFormation outputs.
 
