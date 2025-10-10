@@ -1,7 +1,7 @@
 Datadog Saved View Links  
 *Create static URLs for Datadog Saved Views.*
 
-Saved Views are a powerful feature of Datadog dashboards — they let you save specific combinations of **template variables** so you can quickly switch between filtered views of your data.  
+[Saved Views](https://docs.datadoghq.com/dashboards/template_variables/#saved-views) are a powerful feature of Datadog dashboards — they let you save specific combinations of **template variables** so you can quickly switch between filtered views of your data.  
 
 Unfortunately, Datadog doesn’t currently offer a way to **create links** that automatically apply those Saved View template variable settings when opening a dashboard. This tool aims to **bridge that gap**.
 
