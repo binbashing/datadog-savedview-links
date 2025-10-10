@@ -1,57 +1,34 @@
-# Datadog Saved View Links
+Datadog Saved View Links  
+*Create static URLs for Datadog Saved Views.*
 
-A lightweight AWS SAM-based service that generates redirectable URLs for Datadog dashboard saved views.
+Saved Views are a powerful feature of Datadog dashboards — they let you save specific combinations of **template variables** so you can quickly switch between filtered views of your data.  
+
+Unfortunately, Datadog doesn’t currently offer a way to **create links** that automatically apply those Saved View template variable settings when opening a dashboard. This tool aims to **bridge that gap**.
+
+**Datadog Saved View Links** provides a simple, serverless redirect service that allows links like:
+
+> `https://your-api.amazonaws.com/dashboard/prod-errors`
+
+to redirect users directly to the correct Datadog dashboard with the corresponding **template variables applied**.
+
+This can be useful when linking to dashboards from **runbooks**, **documentation**, **other tools**, or even **other dashboards** — giving your team a consistent and reliable way to navigate directly to the views that matter most.
 
 ## Quick Start
 
 ### Prerequisites
 - Python 3.12+
 - AWS SAM CLI
-- Docker Desktop (for local testing)
-
-### Local Development
-
-1. **Clone and setup**:
-   ```bash
-   git clone <repository-url>
-   cd datadog-savedview-links
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   pip install -r test-requirements.txt
-   ```
-
-2. **Build and test locally**:
-   ```bash
-   sam build
-   sam local start-api
-   ```
-
-3. **Test the endpoint**:
-   ```bash
-   curl http://127.0.0.1:3000/dashboard/test-123
-   ```
-
-   Expected response:
-   ```
-   Datadog Saved View Links service ready for dashboard test-123
-   ```
-
-### Testing
-
-Run unit tests:
-```bash
-pytest -v
-```
-
-Run tests with coverage:
-```bash
-pytest --cov=src --cov-report=html
-```
+- AWS CLI configured with appropriate permissions
 
 ### Deployment
 
-1. **Configure deployment settings**:
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd datadog-savedview-links
+   ```
+
+2. **Configure deployment settings**:
    ```bash
    cp samconfig.toml.example samconfig.toml
    # Edit samconfig.toml with your settings:
@@ -60,7 +37,7 @@ pytest --cov=src --cov-report=html
    # - DatadogSite: Your Datadog site (e.g., us5.datadoghq.com)
    ```
 
-2. **Deploy to AWS**:
+3. **Deploy to AWS**:
    ```bash
    sam build
    sam deploy
@@ -70,34 +47,55 @@ pytest --cov=src --cov-report=html
 
 The deployed API URL will be shown in the CloudFormation outputs.
 
-## Project Structure
+### Usage
 
+Once deployed, you can create shareable links like:
 ```
-datadog-savedview-links/
-├── template.yaml          # AWS SAM template
-├── src/
-│   ├── handler.py          # Lambda entry point
-│   ├── datadog_client.py   # Datadog API client
-│   └── utils.py            # URL building utilities
-├── tests/                  # Test suite
-├── requirements.txt        # Production dependencies
-├── test-requirements.txt   # Development dependencies
-└── README.md              # This file
+https://{your-api}.amazonaws.com/dashboard/{dashboard-id}?view={saved-view-name}
 ```
 
-## Architecture
+This will redirect to your Datadog dashboard with the saved view's template variables applied.
 
-```
-User → API Gateway → Lambda (Python 3.12/ARM64) → Datadog API → Redirect (302)
-```
 
-**Key Features:**
-- **ARM64/Graviton2**: Optimized for better performance and lower cost
-- **Python 3.12**: Latest Python runtime with improved performance
-- **Serverless**: Auto-scaling Lambda with minimal cold start
-- **Regional**: Deployed close to your users for low latency
+## Environment Variables
 
-## Development Workflow
+| Name | Description | Default |
+|------|-------------|---------|
+| `DATADOG_API_KEY` | Datadog API key | None |
+| `DATADOG_APP_KEY` | Datadog application key | None |
+| `DATADOG_SITE` | Datadog site domain | `datadoghq.com` |
+| `LOG_LEVEL` | Logging level | `INFO` |
+
+## Development
+
+### Local Development
+
+1. **Setup development environment**:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   pip install -r test-requirements.txt
+   ```
+
+2. **Run tests**:
+   ```bash
+   pytest -v
+   ```
+
+3. **Run tests with coverage**:
+   ```bash
+   pytest --cov=src --cov-report=html
+   ```
+
+4. **Optional: Test local API** (requires Docker):
+   ```bash
+   sam build
+   sam local start-api
+   curl http://127.0.0.1:3000/dashboard/test-123
+   ```
+
+### Development Workflow
 
 This project follows Test-Driven Development (TDD):
 
@@ -105,15 +103,6 @@ This project follows Test-Driven Development (TDD):
 2. Implement minimal code to pass tests
 3. Refactor and improve
 4. Repeat
-
-## Environment Variables
-
-| Name | Description | Default |
-|------|-------------|---------|
-| `DATADOG_API_KEY` | Datadog API key | `REPLACE_ME` |
-| `DATADOG_APP_KEY` | Datadog application key | `REPLACE_ME` |
-| `DATADOG_SITE` | Datadog site domain | `datadoghq.com` |
-| `LOG_LEVEL` | Logging level | `INFO` |
 
 ## Contributing
 
