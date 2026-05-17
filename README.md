@@ -16,7 +16,7 @@ This can be useful when linking to dashboards from **runbooks**, **documentation
 ## Quick Start
 
 ### Prerequisites
-- Python 3.12+
+- Python 3.13+
 - AWS SAM CLI
 - AWS CLI configured with appropriate permissions
 
